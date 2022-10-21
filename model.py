@@ -50,7 +50,7 @@ class Hyperparameter:
     """A hyperparameter value and the overall quality of the classification."""
     def __init__(self, k: int, training: "TrainingData") -> None:
         self.k = k
-        self.data: TrainingData = training
+        self.data: weakref.ReferenceType["TrainingData"] = weakref.ref(training)
         self.quality = float
     
     def test(self) -> None:
