@@ -2,6 +2,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 import datetime
 from typing import Optional, Union, Iterable
+import weakref
 
 class Sample:
     def __init__(
@@ -44,3 +45,10 @@ class Sample:
     
     def matches(self) -> bool:
         return self.species == self.classification
+
+class Hyperparameter:
+    """A hyperparameter value and the overall quality of the classification."""
+    def __init__(self, k: int, training: "TrainingData") -> None:
+        self.k = k
+        self.data: TrainingData = training
+        self.quality = float
