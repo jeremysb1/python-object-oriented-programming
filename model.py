@@ -18,6 +18,7 @@ class Sample:
         self.petal_width = petal_width
         self.species = species
         self.classification: Optional[str] = None
+    
     def __repr__(self) -> str:
         if self.species is None:
             known_unknown = "UnknownSample"
@@ -37,3 +38,9 @@ class Sample:
             f"{classification}"
             f")"
         )
+    
+    def classify(self, classification: str) -> None:
+        self.classification = classification
+    
+    def matches(self) -> bool:
+        return self.species == self.classification
