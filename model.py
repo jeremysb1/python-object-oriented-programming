@@ -66,3 +66,13 @@ class Hyperparameter:
             else:
                 fail_count += 1
         self.quality = pass_count / (pass_count + fail_count)
+
+class TrainingData:
+    """A set of training and testing data with methods to load and test the samples."""
+    def __init__(self, name: str) -> None:
+        self.name = name
+        self.uploaded: datetime.datetime
+        self.tested: datetime.datetime
+        self.training: list[Sample] = []
+        self.testing: list[Sample] = []
+        self.tuning: list[Hyperparameter] = []
