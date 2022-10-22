@@ -1,4 +1,5 @@
 from __future__ import annotations
+from asyncio import SubprocessTransport
 from collections.abc import Iterator
 import datetime
 from typing import Optional, Union, Iterable
@@ -76,3 +77,12 @@ class TrainingData:
         self.training: list[Sample] = []
         self.testing: list[Sample] = []
         self.tuning: list[Hyperparameter] = []
+    
+    def load(
+        self,
+        raw_data_source: Iterable[dict[str, str]]
+    ) -> None:
+        """Load and partition the raw data."""
+        for n, row in enumerate(raw_data_source):
+            ... filter and extract subsets 
+            ... Create self.training and self.testing subsets 
