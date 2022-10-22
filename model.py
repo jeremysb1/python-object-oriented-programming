@@ -78,11 +78,14 @@ class TrainingData:
         self.testing: list[Sample] = []
         self.tuning: list[Hyperparameter] = []
     
-    def load(
-        self,
-        raw_data_source: Iterable[dict[str, str]]
-    ) -> None:
+    def load(self, raw_data_source: Iterable[dict[str, str]]) -> None:
         """Load and partition the raw data."""
         for n, row in enumerate(raw_data_source):
             ... filter and extract subsets 
             ... Create self.training and self.testing subsets 
+    
+    def test(self, parameter: Hyperparameter) -> None:
+        """Test the parameter value."""
+        parameter.test()
+        self.tuning.append(parameter)
+        self.tested = datetime.datetime.now(tz=datetime.timezone.utc)
