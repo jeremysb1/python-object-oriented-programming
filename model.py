@@ -89,3 +89,9 @@ class TrainingData:
         parameter.test()
         self.tuning.append(parameter)
         self.tested = datetime.datetime.now(tz=datetime.timezone.utc)
+    
+    def classify(self, parameter: Hyperparameter, sample: Sample) -> Sample:
+        """Classify this sample."""
+        classification = parameter.classify(sample)
+        sample.classify(classification)
+        return sample
