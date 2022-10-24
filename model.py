@@ -2,7 +2,7 @@ from __future__ import annotations
 from asyncio import SubprocessTransport
 from collections.abc import Iterator
 import datetime
-from typing import Optional, Union, Iterable
+from typing import cast, Optional, Union, Iterable
 import weakref
 
 class InvalidSampleError(ValueError):
@@ -109,6 +109,22 @@ class TestingKnownSample(KnownSample):
 
     def matches(self) -> bool:
         return self.species == self.classification
+    
+    def __repr__(self) -> str:
+        return (
+            f"{self.__class__.__name__}("
+            f"sepal_length={self.sepal_length}, "
+            f"sepal_width={self.sepal_width}, "
+            f"petal_length={self.petal_length}, "
+            f"petal_width={self.petal_width}, "
+            f"species={self.species!r}, "
+            f"classification={self.classification!r}, "
+            f")"
+        )
+    
+    @classmethod
+    def from_dict(cls, row: dict[str, str]) -> "TestingKnownSample":
+        return cast(TestingKnownSample, super().from_dict(row))
 
 class Hyperparameter:
     """A hyperparameter value and the overall quality of the classification."""
