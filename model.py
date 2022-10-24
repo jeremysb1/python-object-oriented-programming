@@ -86,7 +86,29 @@ class TrainingKnownSample(KnownSample):
     def from_dict(cls, row: dict[str, str]) -> "TrainingKnownSample":
         return cast(TrainingKnownSample, super().from_dict(row))
 
+class TestingKnownSample(KnownSample):
+    """Testing data. A classifier can assign a species, which may or may not be correct."""
 
+    def __init__(
+        self, 
+        species: str, 
+        sepal_length: float, 
+        sepal_width: float, 
+        petal_length: float, 
+        petal_width: float,
+        classification: Optional[str] = None,
+    ) -> None:
+        super().__init__(
+            species=species, 
+            sepal_length=sepal_length, 
+            sepal_width=sepal_width, 
+            petal_length=petal_length, 
+            petal_width=petal_width,
+        )
+        self.classification = classification
+
+    def matches(self) -> bool:
+        return self.species == self.classification
 
 class Hyperparameter:
     """A hyperparameter value and the overall quality of the classification."""
