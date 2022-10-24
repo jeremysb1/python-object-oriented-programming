@@ -33,12 +33,6 @@ class Sample:
             f"petal_width={self.petal_width}, "
             f")"
         )
-    
-    def classify(self, classification: str) -> None:
-        self.classification = classification
-    
-    def matches(self) -> bool:
-        return self.species == self.classification
 
 class Hyperparameter:
     """A hyperparameter value and the overall quality of the classification."""
