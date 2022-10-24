@@ -25,22 +25,12 @@ class Sample:
         self.classification: Optional[str] = None
     
     def __repr__(self) -> str:
-        if self.species is None:
-            known_unknown = "UnknownSample"
-        else:
-            known_unknown = "KnownSample"
-        if self.classification is None:
-            classification = ""
-        else:
-            classification = f", {self.classification}"
         return(
-            f"{known_unknown}("
+            f"{self.__class__.__name__}("
             f"sepal_length={self.sepal_length}, "
             f"sepal_width={self.sepal_width}, "
             f"petal_length={self.petal_length}, "
             f"petal_width={self.petal_width}, "
-            f"species={self.species!r}"
-            f"{classification}"
             f")"
         )
     
