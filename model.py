@@ -79,6 +79,15 @@ class KnownSample(Sample):
         except ValueError as ex:
             raise InvalidSampleError(f"invalid {row!r}")
 
+class TrainingKnownSample(KnownSample):
+    """Training data."""
+
+    @classmethod
+    def from_dict(cls, row: dict[str, str]) -> "TrainingKnownSample":
+        return cast(TrainingKnownSample, super().from_dict(row))
+
+
+
 class Hyperparameter:
     """A hyperparameter value and the overall quality of the classification."""
     def __init__(self, k: int, training: "TrainingData") -> None:
