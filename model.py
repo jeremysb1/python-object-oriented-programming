@@ -5,6 +5,9 @@ import datetime
 from typing import Optional, Union, Iterable
 import weakref
 
+class InvalidSampleError(ValueError):
+    """Source data has invalid data representation."""
+
 class Sample:
     def __init__(
         self,
