@@ -126,6 +126,28 @@ class TestingKnownSample(KnownSample):
     def from_dict(cls, row: dict[str, str]) -> "TestingKnownSample":
         return cast(TestingKnownSample, super().from_dict(row))
 
+class UnknownSample(Sample):
+    """A sample not yet classified."""
+
+    @classmethod
+    def from_dict(cls, row: dict[str, str]) -> "UnknownSample":
+        if set(row.keys()) != {
+            "sepal_length",
+            "sepal_width",
+            "petal_length",
+            "petal_width",
+        }:
+            raise InvalidSampleError(f"invalid fields in {row!r}")
+        try:
+            return cls(
+                sepal_length=float(row["sepal_length"]),
+                sepal_width=float(row["sepal_width"]),
+                petal_length=float(row["petal_length"]),
+                petal_width=float(row["petal_width"]),
+            )
+        except (ValueError, KeyError) as ex:
+            raise InvalidSampleError(f"invalid {row!r}")
+
 class Hyperparameter:
     """A hyperparameter value and the overall quality of the classification."""
     def __init__(self, k: int, training: "TrainingData") -> None:
