@@ -251,26 +251,3 @@ class SD(Distance):
                 s1.petal_width + s2.petal_width,
             ]
         )
-
-class TrainingData:
-    def __init__(self, name: str) -> None:
-        self.name = name
-        self.uploaded: datetime.datetime
-        self.tested: datetime.datetime
-        self.training: list[TrainingKnownSample] = []
-        self.testing: list[TestingKnownSample] = []
-        self.tuning: list[Hyperparameter] = []
-
-    def load(self, raw_data_iter: Iterable[dict[str, str]]) -> None:
-        for n, row in enumerate(raw_data_iter):
-            try:
-                if n % 5 == 0:
-                    test = TestingKnownSample.from_dict(row)
-                    self.testing.append(test)
-                else:
-                    train = TrainingKnownSample.from_dict(row)
-                    self.training.append(train)
-            except InvalidSampleError as ex:
-                print(f"Row {n+1}: {ex}")
-                return
-        self.uploaded = datetime.datetime.now(tz=datetime.timezone.utc)
