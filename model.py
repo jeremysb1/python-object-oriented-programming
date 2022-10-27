@@ -38,6 +38,11 @@ class Sample:
             f")"
         )
 
+class Purpose(enum.IntEnum):
+    Classification = 0
+    Testing = 1
+    Training = 2
+
 class KnownSample(Sample):
     """Abstract superclass for testing data, the species is set externally."""
 
