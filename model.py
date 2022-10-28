@@ -44,7 +44,9 @@ class Purpose(enum.IntEnum):
     Training = 2
 
 class KnownSample(Sample):
-    """Abstract superclass for testing data, the species is set externally."""
+    """Represents a sample of testing or training data, the species is set once
+    The purpose determines if it can or cannot be classified.
+    """
 
     def __init__(
         self,
