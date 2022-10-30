@@ -8,7 +8,7 @@ import enum
 from importlib.resources import path
 from pathlib import Path
 import random
-from typing import cast, Optional, Union, Iterable, Iterator, List, Dict, Counter, Callable, Protocol, TypedDict, TypeVar, DefaultDict, overload
+from typing import cast, overload, Any, Optional, Union, Iterable, Iterator, List, Dict, Counter, Callable, Protocol, TypedDict, TypeVar, DefaultDict, overload
 import weakref
 
 class InvalidSampleError(ValueError):
@@ -240,6 +240,29 @@ class ShufflingSamplePartition(SamplePartition):
     def testing(self) -> List[TestingKnownSample]:
         self.shuffle()
         return [TrainingKnownSample(**sd) for sd in self[self.split :]]
+
+class DealingPartition(abc.ABC):
+    @abc.abstractmethod
+    def __init__(self, items: Optional[Iterable[SampleDict]], *, training_subset: Tuple[int, int] = (8, 10),) -> None:
+        ...
+    
+    @abc.abstractmethod
+    def extend(self, items: Iterable[SampleDict]) -> None:
+        ...
+    
+    @abc.abstractmethod
+    def append(self, item: SampleDict) -> None:
+        ...
+    
+    @property
+    @abc.abstractmethod
+    def training(self) -> List[TrainingKnownSample]:
+        ...
+    
+    @property
+    @abc.abstractmethod
+    def testing(self) -> List[TestingKnownSample]:
+        ...
 
 class TrainingData:
     """A set of training and testing data with methods to load and test the samples."""
