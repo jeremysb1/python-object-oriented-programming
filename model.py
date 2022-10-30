@@ -1,12 +1,13 @@
 from __future__ import annotations
 from asyncio import SubprocessTransport
 from collections.abc import Iterator
+import abc
 import csv
 import datetime
 import enum
 from importlib.resources import path
 from pathlib import Path
-from typing import cast, Optional, Union, Iterable, Iterator, List, Dict, Counter, Callable, Protocol, TypedDict, TypeVar, DefaultDict
+from typing import cast, Optional, Union, Iterable, Iterator, List, Dict, Counter, Callable, Protocol, TypedDict, TypeVar, DefaultDict, overload
 import weakref
 
 class InvalidSampleError(ValueError):
@@ -192,6 +193,32 @@ class SampleDict(TypedDict):
     petal_length: float
     petal_width: float
     species: str
+
+class SamplePartition(List[SampleDict], abc.ABC):
+    @overload
+    def __init__(self, *, training_subset: float = 0.80) -> None:
+        ...
+
+    @overload
+    def __init__(self, iterable: Optional[Iterable[SampleDict]] = None, *, training_subset: float = 0.80) -> None:
+        ...
+
+    def __init__(self, iterable: Optional[Iterable[SampleDict]] = None, *, training_subset: float = 0.80) -> None:
+        self.training_subset = training_subset
+        if iterable:
+            super().__init__(iterable)
+        else:
+            super().__init__()
+    
+    @abc.abstractproperty
+    @property
+    def training(self) -> List[TrainingKnownSample]:
+        ...
+    
+    @abc.abstractproperty
+    @property
+    def testing(self) -> List[TestingKnownSample]:
+        ...
 
 class TrainingData:
     """A set of training and testing data with methods to load and test the samples."""
