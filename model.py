@@ -7,6 +7,7 @@ import datetime
 import enum
 from importlib.resources import path
 from pathlib import Path
+import random
 from typing import cast, Optional, Union, Iterable, Iterator, List, Dict, Counter, Callable, Protocol, TypedDict, TypeVar, DefaultDict, overload
 import weakref
 
@@ -219,6 +220,26 @@ class SamplePartition(List[SampleDict], abc.ABC):
     @property
     def testing(self) -> List[TestingKnownSample]:
         ...
+
+class ShufflingSamplePartition(SamplePartition):
+    def __init__(self, iterable: Optional[Iterable[SampleDict]] = None, *, training_subset: float = 0.80) -> None:
+        super().__init__(iterable, training_subset=training_subset)
+        self.split: Optional[int] = None
+    
+    def shuffle(self) -> None:
+        if not self.split:
+            random.shuffle(self)
+            self.split = int(len(self) * self.training_subset)
+    
+    @property
+    def training(self) -> List[TrainingKnownSample]:
+        self.shuffle()
+        return [TrainingKnownSample(**sd) for sd in self[: self.split]]
+    
+    @property
+    def testing(self) -> List[TestingKnownSample]:
+        self.shuffle()
+        return [TrainingKnownSample(**sd) for sd in self[self.split :]]
 
 class TrainingData:
     """A set of training and testing data with methods to load and test the samples."""
