@@ -6,7 +6,7 @@ import datetime
 import enum
 from importlib.resources import path
 from pathlib import Path
-from typing import cast, Optional, Union, Iterable
+from typing import cast, Optional, Union, Iterable, Iterator, List, Dict, Counter, Callable, Protocol, TypedDict, TypeVar, DefaultDict
 import weakref
 
 class InvalidSampleError(ValueError):
@@ -185,6 +185,13 @@ class Hyperparameter:
             else:
                 fail_count += 1
         self.quality = pass_count / (pass_count + fail_count)
+
+class SampleDict(TypedDict):
+    sepal_length: float
+    sepal_width: float
+    petal_length: float
+    petal_width: float
+    species: str
 
 class TrainingData:
     """A set of training and testing data with methods to load and test the samples."""
