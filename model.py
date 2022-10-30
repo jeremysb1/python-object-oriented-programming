@@ -4,6 +4,7 @@ from collections.abc import Iterator
 import abc
 import csv
 import datetime
+import itertools
 import enum
 from importlib.resources import path
 from pathlib import Path
@@ -263,6 +264,27 @@ class DealingPartition(abc.ABC):
     @abc.abstractmethod
     def testing(self) -> List[TestingKnownSample]:
         ...
+
+class CountingDealingPartition(DealingPartition):
+    def __init__(self, items: Optional[Iterable[SampleDict]], *, training_subset: Tuple[int, int] = (8, 10),) -> None:
+        self.training_subset = training_subset
+        self.counter = 0
+        self._training: List[TrainingKnownSample] = []
+        self._testing: List[TestingKnownSample] = []
+        if items:
+            self.extend(items)
+    
+    def extend(self, items: Iterable[SampleDict]) -> None:
+        for item in items: 
+            self.append(item)
+    
+    def append(self, item: SampleDict) -> None:
+        n, d = self.training_subset
+        if self.counter % d < n:
+            self._training.append(TrainingKnownSample(**item))
+        else:
+            self._testing.append(TestingKnownSample(**item))
+        self.counter += 1
 
 class TrainingData:
     """A set of training and testing data with methods to load and test the samples."""
