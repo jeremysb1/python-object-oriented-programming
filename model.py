@@ -11,4 +11,17 @@ class Sample:
     sepal_width: float
     petal_length: float
     petal_width: float
-    
+
+@dataclass
+class KnownSample(Sample):
+    species: str
+
+@dataclass
+class TestingKnownSample(KnownSample):
+    classification: Optional[str] = None
+
+@dataclass
+class TrainingKnownSample(KnownSample):
+    """Note: no classification instance variable available."""
+    pass
+
