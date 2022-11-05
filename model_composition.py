@@ -1,18 +1,9 @@
 from __future__ import annotations
-from typing import (
-    cast,
-    Callable,
-    Iterable,
-    Iterator,
-    List,
-    NamedTuple,
-    Optional,
-    Type,
-    Union,
-)
-from collections import defaultdict, Counter
-import weakref
-import sys
+import bisect
+import heapq
+import collections
+from typing import cast, NamedTuple, Callable, Iterable, List, Union, Counter
+
 
 class Sample(NamedTuple):
     sepal_length: float
@@ -30,27 +21,31 @@ class TestingKnownSample(NamedTuple):
 class TrainingKnownSample(NamedTuple):
     sample: KnownSample
 
-def training_80(s: KnownSample, i: int) -> bool:
-    return i % 5 != 0
-
-def training_75(s: KnownSample, i: int) -> bool:
-    return i % 4 != 0
-
-def training_67(s: KnownSample, i: int) -> bool:
-    return i % 3 != 0
-
 TrainingList = List[TrainingKnownSample]
 TestingList = List[TestingKnownSample]
 
-def partition(
-    samples: Iterable[KnownSample],
-    rule: Callable[[KnownSample, int], bool]
-) -> tuple[TrainingList, TestingList]:
-    training_samples = [
-        TrainingKnownSample(s) for i, s in enumerate(samples) if rule(s, i)
-    ]
-    test_samples = [
-        TestingKnownSample(s) for i, s in enumerate(samples) if rule(s, i)
-    ]
+class UnknownSample(NamedTuple):
+    sample: Sample
 
-    return training_samples, test_samples
+class ClassifiedKnownSample(NamedTuple):
+    sample: KnownSample
+    classification: str
+
+class ClassifiedUnknownSample(NamedTuple):
+    sample: UnknownSample
+    classification: str
+
+AnySample = Union[KnownSample, UnknownSample]
+DistanceFunc = Callable[[TrainingKnownSample, AnySample], float]
+
+class Measured(NamedTuple):
+    """Measured distance is first to simplify sorting."""
+
+    distance: float
+    sample: TrainingKnownSample
+
+import itertools
+from typing import DefaultDict[int, List[KnownSample]]
+
+Classifier = Callable[[int, DistanceFunc, TrainingList, AnySample], str]
+
