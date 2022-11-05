@@ -75,3 +75,29 @@ class Hyperparameter(NamedTuple):
         )
         return sum(pass_fail)
 
+def minkowski(
+    s1: TrainingKnownSample,
+    s2: AnySample,
+    m: int,
+    summarize: Callable[[Iterable[float]], float] = sum,
+) -> float:
+    return (
+        summarize(
+            [
+                abs(s1.sample.sample.sepal_length - s2.sample.sepal_length) ** m,
+                abs(s1.sample.sample.sepal_width - s2.sample.sepal_width) ** m,
+                abs(s1.sample.sample.petal_length - s2.sample.petal_length) ** m,
+                abs(s1.sample.sample.petal_width - s2.sample.petal_width) ** m,
+            ]
+        )
+        ** (1 / m)
+    )
+
+def manhattan(s1: TrainingKnownSample, s2: AnySample) -> float:
+    return minkowski(s1, s2, m=1)
+
+def euclidean(s1: TrainingKnownSample, s2: AnySample) -> float:
+    return minkowski(s1, s2, m=2)
+
+def chebyshev(s1: TrainingKnownSample, s2: AnySample) -> float:
+    return minkowski(s1, s2, m=1, summarize=max)
