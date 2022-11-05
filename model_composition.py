@@ -45,7 +45,9 @@ class Measured(NamedTuple):
     sample: TrainingKnownSample
 
 import itertools
-from typing import DefaultDict[int, List[KnownSample]]
+from typing import DefaultDict, Tuple, Iterator
+
+ModuloDict = DefaultDict[int, List[KnownSample]]
 
 Classifier = Callable[[int, DistanceFunc, TrainingList, AnySample], str]
 
