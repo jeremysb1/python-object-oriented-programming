@@ -49,3 +49,14 @@ from typing import DefaultDict[int, List[KnownSample]]
 
 Classifier = Callable[[int, DistanceFunc, TrainingList, AnySample], str]
 
+class Hyperparameter(NamedTuple):
+    k: int
+    distance_function: DistanceFunc
+    training_data: TrainingList
+    classifier: Classifier
+    
+    def classify(self, unknown: AnySample) -> str:
+        classifier: Classifier
+        return classifier(self.k, self.distance_function, self.training_data, unknown)
+    
+    def test()
