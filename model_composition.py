@@ -76,6 +76,31 @@ def partition_2(
     testing = list(itertools.chain(*testing_partitions))
     return training, testing
 
+def k_nn_1(
+    k: int, dist: DistanceFunc, training_data: TrainingList, unknown: AnySample
+) -> str:
+    
+    """
+    1.  Create a list of all (distance, training sample) pairs, sorted into ascending order.
+    2.  Pick to the first _k_, the _k_ nearest neighbors.
+    3.  Find the frequencies of result values among the _k_ nearest neighbors.
+    4.  Chose the mode (the highest frequency) among the _k_ nearest neighbors.
+    >>> data = [
+    ...     TrainingKnownSample(KnownSample(sample=Sample(1, 2, 3, 4), species="a")),
+    ...     TrainingKnownSample(KnownSample(sample=Sample(2, 3, 4, 5), species="b")),
+    ...     TrainingKnownSample(KnownSample(sample=Sample(3, 4, 5, 6), species="c")),
+    ...     TrainingKnownSample(KnownSample(sample=Sample(4, 5, 6, 7), species="d")),
+    ... ]
+    >>> dist = lambda ts1, u2: max(abs(ts1.sample.sample[i] - u2.sample[i]) for i in range(len(ts1)))
+    >>> k_nn_1(1, dist, data, UnknownSample(Sample(1.1, 2.1, 3.1, 4.1)))
+    'a'
+    """
+
+    distances = sorted(map(lambda t: Measured(dist(t, unknown), t), training_data))
+    k_nearest = distances[:k]
+    k_frequencies: Counter[str] = collections.Counter(s.sample.sample.species for s in k_nearest)
+    mode, fq = k_frequencies.most_common(1)[0]
+    return mode
 
 Classifier = Callable[[int, DistanceFunc, TrainingList, AnySample], str]
 
