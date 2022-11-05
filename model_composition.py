@@ -59,4 +59,19 @@ class Hyperparameter(NamedTuple):
         classifier: Classifier
         return classifier(self.k, self.distance_function, self.training_data, unknown)
     
-    def test()
+    def test(self, testing: TestingList) -> int:
+        classifier: self.classifier
+        test_results = (
+            ClassifiedKnownSample(
+                t.sample, 
+                classifier(
+                    self.k, self.distance_function, self.training_data, t.sample
+                ),
+            )
+            for t in testing
+        )
+        pass_fail = map(
+            lambda t: (1 if t.sample.species == t.classification else 0), test_results
+        )
+        return sum(pass_fail)
+
