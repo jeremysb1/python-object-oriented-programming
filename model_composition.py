@@ -102,6 +102,47 @@ def k_nn_1(
     mode, fq = k_frequencies.most_common(1)[0]
     return mode
 
+def k_nn_bisect(
+    k: int, dist: DistanceFunc, training_data: TrainingList, unknown: AnySample
+) -> str:
+    """
+    Use bisect.bisect_left() to maintain a short list of the _k_ nearest neighbors, in order.
+    1. For each item:
+        1. Compute the distance.
+        2. If it's greater than the last of the _k_ nearest neighbors, discard it.
+        3. Otherwise,
+            1.  Find a spot among the _k_ values.
+            2.  Insert the new item.
+            3. Truncate the list back to length _k_.
+    2.  Find the frequencies of result values among the _k_ nearest neighbors.
+    3.  Chose the mode (the highest frequency) among the _k_ nearest neighbors.
+    >>> data = [
+    ...     TrainingKnownSample(KnownSample(sample=Sample(1, 2, 3, 4), species="a")),
+    ...     TrainingKnownSample(KnownSample(sample=Sample(2, 3, 4, 5), species="b")),
+    ...     TrainingKnownSample(KnownSample(sample=Sample(3, 4, 5, 6), species="c")),
+    ...     TrainingKnownSample(KnownSample(sample=Sample(4, 5, 6, 7), species="d")),
+    ... ]
+    >>> dist = lambda ts1, u2: max(abs(ts1.sample.sample[i] - u2.sample[i]) for i in range(len(ts1)))
+    >>> k_nn_b(1, dist, data, UnknownSample(Sample(1.1, 2.1, 3.1, 4.1)))
+    'a'
+    """
+
+    k_nearest = [
+        Measured(float("inf"), cast(TrainingKnownSample, None)) for _ in range(k)
+    ]
+    for t in training_data:
+        t_dist = dist(t, unknown)
+        if t_dist > k_nearest[-1].distance:
+            continue
+        new = Measured(t_dist, t)
+        k_nearest.insert(bisect.bisect_left(k_nearest, new), new)
+        k_nearest.pop(-1)
+    k_frequencies: Counter[str] = collections.Counter(
+        s.sample.sample.species for s in k_nearest
+    )
+    mode, fq = k_frequencies.most_common(1)[0]
+    return mode
+
 Classifier = Callable[[int, DistanceFunc, TrainingList, AnySample], str]
 
 class Hyperparameter(NamedTuple):
