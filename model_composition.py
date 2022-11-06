@@ -143,6 +143,34 @@ def k_nn_bisect(
     mode, fq = k_frequencies.most_common(1)[0]
     return mode
 
+def k_nn_heapq(
+    k: int, dist: DistanceFunc, training_data: TrainingList, unknown: AnySample
+) -> str:
+    """
+    Use heapq to maintain a list of the neighbors, in order, avoiding a sort
+    after all computations are completed.
+    1. For each item:
+        1. Compute the distance.
+        2. Push it to the heap queue, maintaining distance order.
+    2.  Find the frequencies of result values among the _k_ nearest neighbors.
+    3.  Chose the mode (the highest frequency) among the _k_ nearest neighbors.
+    >>> data = [
+    ...     TrainingKnownSample(KnownSample(sample=Sample(1, 2, 3, 4), species="a")),
+    ...     TrainingKnownSample(KnownSample(sample=Sample(2, 3, 4, 5), species="b")),
+    ...     TrainingKnownSample(KnownSample(sample=Sample(3, 4, 5, 6), species="c")),
+    ...     TrainingKnownSample(KnownSample(sample=Sample(4, 5, 6, 7), species="d")),
+    ... ]
+    >>> dist = lambda ts1, u2: max(abs(ts1.sample.sample[i] - u2.sample[i]) for i in range(len(ts1)))
+    >>> k_nn_q(1, dist, data, UnknownSample(Sample(1.1, 2.1, 3.1, 4.1)))
+    'a'
+    """
+
+    measured_iter = (Measured(dist(t, unknown), t) for t in training_data)
+    k_nearest = heapq.nsmallest(k, measured_iter)
+    k_frequencies: Counter[str] = collections.Counter(s.sample.sample.species for s in k_nearest)
+    mode, fq = k_frequencies.most_common(1)[0]
+    return mode
+
 Classifier = Callable[[int, DistanceFunc, TrainingList, AnySample], str]
 
 class Hyperparameter(NamedTuple):
