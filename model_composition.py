@@ -211,3 +211,29 @@ class Chebyshev(Distance):
                 abs(s1.sample.sample.petal_width - s2.sample.petal_width),
             ]
         )
+
+class Hyperparameter(NamedTuple):
+    k: int
+    distance: Distance
+    training_data: TrainingList
+    classifier: Classifier
+
+    def classify(self, unknown: AnySample) -> str:
+        classifier: self.classifier
+        distance: self.distance
+        return classifier(self.k, distance.distance, self.training_data, unknown)
+    
+    def test(self, testing: TestingList) -> float:
+        classifier: self.classifier
+        distance: self.distance
+        test_results = (
+            ClassifiedKnownSample(
+                t.sample, 
+                classifier(self.k, distance.distance, self.training_data, t.sample)
+            )
+            for t in testing
+        )
+        pass_fail = map(
+            lambda t: (1 if t.sample.species == t.classification else 0)
+        )
+        return sum(pass_fail) / len(testing)
