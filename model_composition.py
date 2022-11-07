@@ -246,3 +246,17 @@ class Timing(NamedTuple):
     quality: float
     time: float
 
+class TestCommand:
+    def __init__(self, hyper_param: Hyperparameter, testing: TestingList) -> None:
+        def test(self) -> Timing:
+            start = time.perf_counter()
+            recall_score = self.hyperparameter.test(self.testing_samples)
+            end = time.perf_counter()
+            timing = Timing(
+                k = self.hyperparameter.k,
+                distance_name = self.hyperparameter.distance.__class__.__name__,
+                classifier_name = self.hyperparameter.classifier.__class__.__name__,
+                quality = recall_score,
+                time = round((end - start) * 1000.0, 3),
+            )
+            return timing
