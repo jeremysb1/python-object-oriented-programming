@@ -5,6 +5,8 @@ import collections
 from typing import cast, NamedTuple, Callable, Iterable, List, Union, Counter, Protocol
 from math import hypot
 import time
+import csv
+from pathlib import Path
 
 
 class Sample(NamedTuple):
@@ -183,7 +185,7 @@ class Distance(Protocol):
     ) -> float:
         ...
 
-class Euclidian(Distance):
+class Euclidean(Distance):
     def distance(self, s1: TrainingKnownSample, s2: AnySample) -> float:
         return hypot(
             (s1.sample.sample.sepal_length - s2.sample.sepal_length) ** 2,
@@ -260,3 +262,46 @@ class TestCommand:
                 time = round((end - start) * 1000.0, 3),
             )
             return timing
+
+def load(source: Path) -> tuple[TrainingList, TestingList]:
+    """Load and partition known samples.
+    The :func:`partition_2` function requires
+    :envvar:`PYTHONHASHSEED` is zero in the environment settings.
+    """
+    header = ["sepal_length", "sepal_width", "petal_length", "petal_width", "species"]
+    with source.open() as source_file:
+        reader = csv.DictReader(source_file, header)
+        data = (
+            KnownSample(
+                sample=Sample(
+                    float(row["sepal_length"]),
+                    float(row["sepal_width"]),
+                    float(row["petal_length"]),
+                    float(row["petal_width"]),
+                ),
+                species=row["species"],
+            )
+            for row in reader
+        )
+        train, test = partition_2(data, lambda i: i % 4 != 0)
+    print(
+        f"Training: {len(train)}, Testing: {len(test)}, Total: {len(train)+len(test)}"
+    )
+    return train, test
+
+manhattan = Manhattan()
+euclidean = Euclidean()
+chebyshev = Chebyshev()
+
+def tuning(source: Path) -> None:
+    train, test = source(load)
+    scenarios = [
+        TestCommand(Hyperparameter(k, df, train, cl), test)
+        for k in range(3, 33, 2)
+        for df in (euclidean, manhattan, chebyshev)
+        for cl in (k_nn_1, k_nn_bisect, k_nn_heapq)
+    ]
+    timings = [s.test() for s in scenarios]
+    for t in timings:
+        if t.quality >= 1.0:
+        print(t)
