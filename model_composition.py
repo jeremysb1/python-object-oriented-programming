@@ -2,7 +2,8 @@ from __future__ import annotations
 import bisect
 import heapq
 import collections
-from typing import cast, NamedTuple, Callable, Iterable, List, Union, Counter
+from typing import cast, NamedTuple, Callable, Iterable, List, Union, Counter, Protocol
+from math import hypot
 
 
 class Sample(NamedTuple):
@@ -98,7 +99,7 @@ def k_nn_1(
 
     distances = sorted(map(lambda t: Measured(dist(t, unknown), t), training_data))
     k_nearest = distances[:k]
-    k_frequencies: Counter[str] = collections.Counter(s.sample.sample.species for s in k_nearest)
+    k_frequencies: Counter[str] = Counter(s.sample.sample.species for s in k_nearest)
     mode, fq = k_frequencies.most_common(1)[0]
     return mode
 
@@ -137,7 +138,7 @@ def k_nn_bisect(
         new = Measured(t_dist, t)
         k_nearest.insert(bisect.bisect_left(k_nearest, new), new)
         k_nearest.pop(-1)
-    k_frequencies: Counter[str] = collections.Counter(
+    k_frequencies: Counter[str] = Counter(
         s.sample.sample.species for s in k_nearest
     )
     mode, fq = k_frequencies.most_common(1)[0]
@@ -167,61 +168,46 @@ def k_nn_heapq(
 
     measured_iter = (Measured(dist(t, unknown), t) for t in training_data)
     k_nearest = heapq.nsmallest(k, measured_iter)
-    k_frequencies: Counter[str] = collections.Counter(s.sample.sample.species for s in k_nearest)
+    k_frequencies: Counter[str] = Counter(s.sample.sample.species for s in k_nearest)
     mode, fq = k_frequencies.most_common(1)[0]
     return mode
 
 Classifier = Callable[[int, DistanceFunc, TrainingList, AnySample], str]
 
-class Hyperparameter(NamedTuple):
-    k: int
-    distance_function: DistanceFunc
-    training_data: TrainingList
-    classifier: Classifier
-    
-    def classify(self, unknown: AnySample) -> str:
-        classifier: Classifier
-        return classifier(self.k, self.distance_function, self.training_data, unknown)
-    
-    def test(self, testing: TestingList) -> int:
-        classifier: self.classifier
-        test_results = (
-            ClassifiedKnownSample(
-                t.sample, 
-                classifier(
-                    self.k, self.distance_function, self.training_data, t.sample
-                ),
-            )
-            for t in testing
-        )
-        pass_fail = map(
-            lambda t: (1 if t.sample.species == t.classification else 0), test_results
-        )
-        return sum(pass_fail)
+class Distance(Protocol):
+    def distance(
+        self,
+        s1: TrainingKnownSample,
+        s2: AnySample
+    ) -> float:
+        ...
 
-def minkowski(
-    s1: TrainingKnownSample,
-    s2: AnySample,
-    m: int,
-    summarize: Callable[[Iterable[float]], float] = sum,
-) -> float:
-    return (
-        summarize(
+class Euclidian(Distance):
+    def distance(self, s1: TrainingKnownSample, s2: AnySample) -> float:
+        return hypot(
+            (s1.sample.sample.sepal_length - s2.sample.sepal_length) ** 2,
+            (s1.sample.sample.sepal_width - s2.sample.sepal_width) ** 2,
+            (s1.sample.sample.petal_length - s2.sample.petal_length) ** 2,
+            (s1.sample.sample.petal_width - s2.sample.petal_width) ** 2,
+        )
+
+class Manhattan(Distance):
+    def distance(self, s1: TrainingKnownSample, s2: AnySample) -> float:
+        return sum(
             [
-                abs(s1.sample.sample.sepal_length - s2.sample.sepal_length) ** m,
-                abs(s1.sample.sample.sepal_width - s2.sample.sepal_width) ** m,
-                abs(s1.sample.sample.petal_length - s2.sample.petal_length) ** m,
-                abs(s1.sample.sample.petal_width - s2.sample.petal_width) ** m,
+                abs(s1.sample.sample.sepal_length - s2.sample.sepal_length),
+                abs(s1.sample.sample.sepal_width - s2.sample.sepal_width),
+                abs(s1.sample.sample.petal_length - s2.sample.petal_length),
+                abs(s1.sample.sample.petal_width - s2.sample.petal_width),
             ]
         )
-        ** (1 / m)
-    )
-
-def manhattan(s1: TrainingKnownSample, s2: AnySample) -> float:
-    return minkowski(s1, s2, m=1)
-
-def euclidean(s1: TrainingKnownSample, s2: AnySample) -> float:
-    return minkowski(s1, s2, m=2)
-
-def chebyshev(s1: TrainingKnownSample, s2: AnySample) -> float:
-    return minkowski(s1, s2, m=1, summarize=max)
+class Chebyshev(Distance):
+    def distance(self, s1: TrainingKnownSample, s2: AnySample) -> float:
+        return max(
+            [
+                abs(s1.sample.sample.sepal_length - s2.sample.sepal_length),
+                abs(s1.sample.sample.sepal_width - s2.sample.sepal_width),
+                abs(s1.sample.sample.petal_length - s2.sample.petal_length),
+                abs(s1.sample.sample.petal_width - s2.sample.petal_width),
+            ]
+        )
