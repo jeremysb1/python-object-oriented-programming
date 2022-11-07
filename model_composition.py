@@ -4,6 +4,7 @@ import heapq
 import collections
 from typing import cast, NamedTuple, Callable, Iterable, List, Union, Counter, Protocol
 from math import hypot
+import time
 
 
 class Sample(NamedTuple):
@@ -237,3 +238,11 @@ class Hyperparameter(NamedTuple):
             lambda t: (1 if t.sample.species == t.classification else 0)
         )
         return sum(pass_fail) / len(testing)
+
+class Timing(NamedTuple):
+    k: int
+    distance_name: str
+    classifier_name: str
+    quality: float
+    time: float
+
